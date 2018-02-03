@@ -26,23 +26,23 @@ if(theCommand === "my-tweets"){
   });
 }
 
-//getting 401. No Token Provided. 
 if(theCommand === "spotify-this-song"){
 
   var theQueryArray =[];
   var theQueryString ="";
+
   for(var i = 3; i<process.argv.length; i++){
-    theQueryArray.push(process.argv[i]);
-    theQueryArray.toString();
-    theQueryString = theQueryArray.join();
+    theQueryString = theQueryString + process.argv[i] + " ";
   }
 
+  theQueryString = JSON.stringify(theQueryString);
   console.log(typeof theQueryString);
   console.log(theQueryString);
   //spotify with promises
   spotify.search({ type: 'track', query: theQueryString })
   .then(function(response) {
-    console.log(response);
+    console.log(JSON.stringify(response.tracks.items[0], null, 4));
+    // console.log(JSON.stringify(response.tracks.items[0].album.name));
   })
   .catch(function(err) {
     console.log(err);
@@ -50,7 +50,6 @@ if(theCommand === "spotify-this-song"){
 
 }
 
-//searches undefined instead of movie title.
 if(theCommand === "movie-this"){
    var theQueryString ="";
 
@@ -82,5 +81,11 @@ if(theCommand === "movie-this"){
       console.log(error);
     }
   })
+
+}
+
+if(theCommand === "do-what-it-says"){
+
+
 
 }
