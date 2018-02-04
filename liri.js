@@ -11,11 +11,36 @@ var client = new Twitter(keys.twitter);
 var APIkey = keys.OMDB;
 
 var theCommand = process.argv[2];
+var theQueryString ="";
 
-if(theCommand === "my-tweets"){
-  //twitter
-  var params = {screen_name: 'Oprah_FTW_free'};
-  client.get('statuses/user_timeline', params, function(error, tweets, response) {
+for(var i = 3; i<process.argv.length; i++){
+  theQueryString = theQueryString + process.argv[i] + " ";
+}
+
+theQueryString = JSON.stringify(theQueryString);
+
+var switchboard = function(theCommand){
+  switch (theCommand){
+    case "my-tweets":
+      getTweets();
+      break;
+    case "spotify-this-song":
+      getSpotify();
+      break;
+    case "movie-this":
+      getOMDB();
+      break;
+    case "do-what-it-says":
+      doThingFromRandomTxt();
+      break;
+    default: 
+      console.log("HUH?! WHAT?! COME AGAIN?!?!");        
+  }
+}
+
+function getTweets(){
+   var params = {screen_name: 'Oprah_FTW_free'};
+      client.get('statuses/user_timeline', params, function(error, tweets, response) {
     if (!error) {
 
       for (var i=0; i < tweets.length; i++){
@@ -24,48 +49,31 @@ if(theCommand === "my-tweets"){
       }    
     }
   });
-}
+};
 
-if(theCommand === "spotify-this-song"){
-
-  var theQueryArray =[];
-  var theQueryString ="";
-
-  for(var i = 3; i<process.argv.length; i++){
-    theQueryString = theQueryString + process.argv[i] + " ";
-  }
-
-  theQueryString = JSON.stringify(theQueryString);
-  console.log(typeof theQueryString);
-  console.log(theQueryString);
-  //spotify with promises
-  spotify.search({ type: 'track', query: theQueryString })
-  .then(function(response) {
-    console.log(JSON.stringify(response.tracks.items[0], null, 4));
-    // console.log(JSON.stringify(response.tracks.items[0].album.name));
-  })
-  .catch(function(err) {
-    console.log(err);
-  });
-
-}
-
-if(theCommand === "movie-this"){
-   var theQueryString ="";
-
-   if(!process.argv[3]){
-     theQueryString = "Mr Nobody";
-    }
-   else{
-      for(var i = 3; i<process.argv.length; i++){
-        theQueryString = theQueryString + process.argv[i] + " ";
-      }
-    }
-  
-  theQueryString = JSON.stringify(theQueryString);
-  
-  var queryURL = "http://www.omdbapi.com/?apikey="+ APIkey +"&t=" + theQueryString;
+function getSpotify(){
+   //spotify with promises
+   spotify.search({ type: 'track', query: theQueryString })
+   .then(function(response) {
+     console.log("Song: " + JSON.stringify(response.tracks.items[0].name, null, 4));
+     console.log("Artist: " + JSON.stringify(response.tracks.items[0].artists[0].name, null, 4));
+     console.log("Album: " + JSON.stringify(response.tracks.items[0].album.name, null, 4));
+     console.log("Preview URL: " + JSON.stringify(response.tracks.items[0].preview_url, null, 4));
  
+     // console.log(JSON.stringify(response.tracks.items[0].album.name));
+   })
+   .catch(function(err) {
+     console.log(err);
+   });
+};
+
+function getOMDB(){
+   if(!process.argv[3] ){
+     theQueryString = "Mr Nobody";
+   }
+    console.log( theQueryString);
+  var queryURL = "http://www.omdbapi.com/?apikey="+ APIkey +"&t=" + theQueryString;
+ console.log(queryURL);
   request(queryURL, function (error, response, body){
     if(!error && response.statusCode === 200){
       console.log("Title: " + JSON.parse(body).Title);
@@ -82,10 +90,30 @@ if(theCommand === "movie-this"){
     }
   })
 
-}
+};
 
-if(theCommand === "do-what-it-says"){
+function doThingFromRandomTxt(){
+  
+  fs.readFile("random.txt" , "utf8", function (error, data){
+      if(error){
+        console.log(error);
+        console.log("There was an error.");
+      }
+
+      var infoFromRandom = data.split(",");
+
+      if(!infoFromRandom.length){
+        console.log("infoFromRandom is empty");
+      }
+      
+      theCommand = infoFromRandom[0];
+      for(var i = 1; i<infoFromRandom.length; i++){
+        theQueryString = theQueryString + infoFromRandom[1];
+      }
+
+      switchboard(theCommand);
+    });
+};
 
 
-
-}
+switchboard(theCommand);
